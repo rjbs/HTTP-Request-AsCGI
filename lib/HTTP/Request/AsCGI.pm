@@ -11,7 +11,7 @@ use IO::File;
 
 __PACKAGE__->mk_accessors(qw[ enviroment request stdin stdout stderr ]);
 
-our $VERSION = 0.2;
+our $VERSION = 0.3;
 
 sub new {
     my $class   = shift;
@@ -91,7 +91,7 @@ sub setup {
           or croak("Can't seek stdin handle: $!");
     }
 
-    open( $self->{restore}->{stdin}, '>&', STDIN->fileno )
+    open( $self->{restore}->{stdin}, '<&', STDIN->fileno )
       or croak("Can't dup stdin: $!");
 
     open( STDIN, '<&=', $self->stdin->fileno )
@@ -212,10 +212,13 @@ sub response {
 
 sub restore {
     my $self = shift;
+    
+    {
+        no warnings 'uninitialized';
+        %ENV = %{ $self->{restore}->{enviroment} };
+    }
 
-    %ENV = %{ $self->{restore}->{enviroment} };
-
-    open( STDIN, '>&', $self->{restore}->{stdin} )
+    open( STDIN, '<&', $self->{restore}->{stdin} )
       or croak("Can't restore stdin: $!");
 
     sysseek( $self->stdin, 0, SEEK_SET )

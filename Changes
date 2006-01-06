@@ -1,5 +1,9 @@
 This file documents the revision history for Perl extension HTTP::Request::AsCGI.
 
+0.3  2006-01-06 00:00:00 2005
+    - silence uninitialized warnings when restoring %ENV
+    - fixed dup and restore of STDIN.
+
 0.2  2005-10-31 00:55:00 2005
     - added test for response.
 
