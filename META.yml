@@ -1,14 +1,14 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         HTTP-Request-AsCGI
-version:      0.3
+version:      0.4
 version_from: lib/HTTP/Request/AsCGI.pm
 installdirs:  site
 requires:
     Carp:                          0
     Class::Accessor:               0
     HTTP::Request:                 0
-    HTTP::Response:                0
+    HTTP::Response:                1.53
     IO::File:                      0
     Test::More:                    0
 
