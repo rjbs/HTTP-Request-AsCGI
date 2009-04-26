@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               HTTP-Request-AsCGI
-version:            0.501
+version:            0.502
 abstract:           ~
 author:  []
 license:            unknown
@@ -16,7 +16,6 @@ requires:
     HTTP::Response:   1.53
     IO::File:         0
     Test::More:       0
-    URI::Escape:      0
 no_index:
     directory:
         - t
