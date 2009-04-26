@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               HTTP-Request-AsCGI
-version:            0.502
+version:            0.503
 abstract:           ~
 author:  []
 license:            unknown
