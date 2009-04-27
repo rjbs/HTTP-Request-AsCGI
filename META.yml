@@ -14,4 +14,4 @@ requires:
   IO::File: 0
   Test::More: 0
   URI::Escape: 0
-version: 0.7
+version: 0.8

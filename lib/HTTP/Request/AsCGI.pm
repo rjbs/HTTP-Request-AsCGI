@@ -1,5 +1,5 @@
 package HTTP::Request::AsCGI;
-our $VERSION = '0.7';
+our $VERSION = '0.8';
 
 # ABSTRACT: Set up a CGI environment from an HTTP::Request
 use strict;
@@ -45,7 +45,8 @@ sub new {
         GATEWAY_INTERFACE => 'CGI/1.1',
         HTTP_HOST         => $uri->host_port,
         HTTPS             => ( $uri->scheme eq 'https' ) ? 'ON' : 'OFF',  # not in RFC 3875
-        PATH_INFO         => URI::Escape::uri_unescape($uri->path),
+#        PATH_INFO         => URI::Escape::uri_unescape($uri->path),
+        PATH_INFO         => $uri->path,
         QUERY_STRING      => $uri->query || '',
         SCRIPT_NAME       => '/',
         SERVER_NAME       => $uri->host,
@@ -288,7 +289,7 @@ HTTP::Request::AsCGI - Set up a CGI environment from an HTTP::Request
 
 =head1 VERSION
 
-version 0.7
+version 0.8
 
 =begin Pod::Coverage
 

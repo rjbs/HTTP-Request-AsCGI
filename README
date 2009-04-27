@@ -1,7 +1,7 @@
 
 
 This archive contains the distribution HTTP-Request-AsCGI, version
-0.7:
+0.8:
 
   Set up a CGI environment from an HTTP::Request
 
