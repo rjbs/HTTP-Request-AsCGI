@@ -1,5 +1,7 @@
 package HTTP::Request::AsCGI;
+our $VERSION = '0.6';
 
+# ABSTRACT: Set up a CGI environment from an HTTP::Request
 use strict;
 use warnings;
 use bytes;
@@ -10,9 +12,11 @@ use HTTP::Response;
 use IO::Handle;
 use IO::File;
 
-__PACKAGE__->mk_accessors(qw[ enviroment request stdin stdout stderr ]);
+__PACKAGE__->mk_accessors(qw[ environment request stdin stdout stderr ]);
 
-our $VERSION = 0.5_03;
+# old typo
+
+*enviroment = \&environment;
 
 sub new {
     my $class   = shift;
@@ -36,7 +40,7 @@ sub new {
 
     $uri = $uri->canonical;
 
-    my $enviroment = {
+    my $environment = {
         GATEWAY_INTERFACE => 'CGI/1.1',
         HTTP_HOST         => $uri->host_port,
         HTTPS             => ( $uri->scheme eq 'https' ) ? 'ON' : 'OFF',  # not in RFC 3875
@@ -61,17 +65,17 @@ sub new {
         $key =~ tr/-/_/;
         $key =~ s/^HTTP_// if $field =~ /^Content-(Length|Type)$/;
 
-        unless ( exists $enviroment->{$key} ) {
-            $enviroment->{$key} = $request->headers->header($field);
+        unless ( exists $environment->{$key} ) {
+            $environment->{$key} = $request->headers->header($field);
         }
     }
 
-    unless ( $enviroment->{SCRIPT_NAME} eq '/' && $enviroment->{PATH_INFO} ) {
-        $enviroment->{PATH_INFO} =~ s/^\Q$enviroment->{SCRIPT_NAME}\E/\//;
-        $enviroment->{PATH_INFO} =~ s/^\/+/\//;
+    unless ( $environment->{SCRIPT_NAME} eq '/' && $environment->{PATH_INFO} ) {
+        $environment->{PATH_INFO} =~ s/^\Q$environment->{SCRIPT_NAME}\E/\//;
+        $environment->{PATH_INFO} =~ s/^\/+/\//;
     }
 
-    $self->enviroment($enviroment);
+    $self->environment($environment);
 
     return $self;
 }
@@ -79,7 +83,7 @@ sub new {
 sub setup {
     my $self = shift;
 
-    $self->{restore}->{enviroment} = {%ENV};
+    $self->{restore}->{environment} = {%ENV};
 
     binmode( $self->stdin );
 
@@ -129,7 +133,7 @@ sub setup {
 
     {
         no warnings 'uninitialized';
-        %ENV = %{ $self->enviroment };
+        %ENV = %{ $self->environment };
     }
 
     if ( $INC{'CGI.pm'} ) {
@@ -227,7 +231,7 @@ sub restore {
 
     {
         no warnings 'uninitialized';
-        %ENV = %{ $self->{restore}->{enviroment} };
+        %ENV = %{ $self->{restore}->{environment} };
     }
 
     open( STDIN, '<&'. fileno($self->{restore}->{stdin}) )
@@ -272,43 +276,56 @@ sub DESTROY {
 
 1;
 
-__END__
+
+
+
+=pod
 
 =head1 NAME
 
-HTTP::Request::AsCGI - Setup a CGI enviroment from a HTTP::Request
+HTTP::Request::AsCGI - Set up a CGI environment from an HTTP::Request
+
+=head1 VERSION
+
+version 0.6
+
+=begin Pod::Coverage
+
+    enviroment
+
+=end Pod::Coverage
 
 =head1 SYNOPSIS
 
-    use CGI;
-    use HTTP::Request;
-    use HTTP::Request::AsCGI;
-    
-    my $request = HTTP::Request->new( GET => 'http://www.host.com/' );
-    my $stdout;
-    
-    {
-        my $c = HTTP::Request::AsCGI->new($request)->setup;
-        my $q = CGI->new;
-        
-        print $q->header,
-              $q->start_html('Hello World'),
-              $q->h1('Hello World'),
-              $q->end_html;
-        
-        $stdout = $c->stdout;
-        
-        # enviroment and descriptors will automatically be restored 
-        # when $c is destructed.
-    }
-    
-    while ( my $line = $stdout->getline ) {
-        print $line;
-    }
-    
+      use CGI;
+      use HTTP::Request;
+      use HTTP::Request::AsCGI;
+
+      my $request = HTTP::Request->new( GET => 'http://www.host.com/' );
+      my $stdout;
+
+      {
+          my $c = HTTP::Request::AsCGI->new($request)->setup;
+          my $q = CGI->new;
+
+          print $q->header,
+                $q->start_html('Hello World'),
+                $q->h1('Hello World'),
+                $q->end_html;
+
+          $stdout = $c->stdout;
+
+          # environment and descriptors will automatically be restored
+          # when $c is destructed.
+      }
+
+      while ( my $line = $stdout->getline ) {
+          print $line;
+      }
+
 =head1 DESCRIPTION
 
-Provides a convinient way of setting up an CGI enviroment from a HTTP::Request.
+Provides a convinient way of setting up an CGI environment from a HTTP::Request.
 
 =head1 METHODS
 
@@ -316,10 +333,10 @@ Provides a convinient way of setting up an CGI enviroment from a HTTP::Request.
 
 =item new ( $request [, key => value ] )
 
-Contructor, first argument must be a instance of HTTP::Request
+Constructor, first argument must be a instance of HTTP::Request
 followed by optional pairs of environment key and value.
 
-=item enviroment
+=item environment
 
 Returns a hashref containing the environment that will be used in setup. 
 Changing the hashref after setup has been called will have no effect.
@@ -330,7 +347,7 @@ Setups the environment and descriptors.
 
 =item restore
 
-Restores the enviroment and descriptors. Can only be called after setup.
+Restores the environment and descriptors. Can only be called after setup.
 
 =item request
 
@@ -355,7 +372,7 @@ handle with an file descriptor. Defaults to a tempoary IO::File instance.
 Accessor for handle that will be used for STDERR, must be a real seekable
 handle with an file descriptor.
 
-=back
+=back 
 
 =head1 SEE ALSO
 
@@ -367,19 +384,27 @@ handle with an file descriptor.
 
 =item L<Test::WWW::Mechanize::CGI>
 
-=back
+=back 
 
 =head1 THANKS TO
 
 Thomas L. Shinnick for his valuable win32 testing.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
-Christian Hansen, C<ch@ngmedia.com>
+  Christian Hansen <ch@ngmedia.com>
+  Hans Dieter Pearcey <hdp@cpan.org>
 
-=head1 LICENSE
+=head1 COPYRIGHT AND LICENSE
 
-This library is free software. You can redistribute it and/or modify 
-it under the same terms as perl itself.
+This software is copyright (c) 2009 by Christian Hansen <ch@ngmedia.com>.
 
-=cut
+This is free software; you can redistribute it and/or modify it under
+the same terms as perl itself.
+
+=cut 
+
+
+
+__END__
+
