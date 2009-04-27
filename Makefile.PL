@@ -9,7 +9,7 @@ WriteMakefile(
   NAME      => 'HTTP::Request::AsCGI',
   AUTHOR    => 'Christian\ Hansen\ \<ch\@ngmedia\.com\>\,\ Hans\ Dieter\ Pearcey\ \<hdp\@cpan\.org\>',
   ABSTRACT  => 'Set up a CGI environment from an HTTP::Request',
-  VERSION   => '0.8',
+  VERSION   => '0.9',
   EXE_FILES => [ qw() ],
   (eval { ExtUtils::MakeMaker->VERSION(6.21) } ? (LICENSE => 'perl') : ()),
   PREREQ_PM    => {

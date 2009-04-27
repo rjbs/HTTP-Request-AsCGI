@@ -1,17 +1,17 @@
---- 
+---
 abstract: Set up a CGI environment from an HTTP::Request
-author: 
-  - Christian Hansen <ch@ngmedia.com>
-  - Hans Dieter Pearcey <hdp@cpan.org>
-generated_by: Dist::Zilla::Plugin::MetaYaml version 1.004
+author:
+- Christian Hansen <ch@ngmedia.com>
+- Hans Dieter Pearcey <hdp@cpan.org>
+generated_by: Dist::Zilla::Plugin::MetaYaml version 1.007
 license: perl
 name: HTTP-Request-AsCGI
-requires: 
-  Carp: 0
-  Class::Accessor: 0
-  HTTP::Request: 0
-  HTTP::Response: 1.53
-  IO::File: 0
-  Test::More: 0
-  URI::Escape: 0
-version: 0.8
+requires:
+  Carp: '0'
+  Class::Accessor: '0'
+  HTTP::Request: '0'
+  HTTP::Response: '1.53'
+  IO::File: '0'
+  Test::More: '0'
+  URI::Escape: '0'
+version: '0.9'
