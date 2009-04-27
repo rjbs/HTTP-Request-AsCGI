@@ -1,5 +1,5 @@
 package HTTP::Request::AsCGI;
-our $VERSION = '0.6';
+our $VERSION = '0.7';
 
 # ABSTRACT: Set up a CGI environment from an HTTP::Request
 use strict;
@@ -11,6 +11,7 @@ use Carp;
 use HTTP::Response;
 use IO::Handle;
 use IO::File;
+use URI::Escape ();
 
 __PACKAGE__->mk_accessors(qw[ environment request stdin stdout stderr ]);
 
@@ -44,7 +45,7 @@ sub new {
         GATEWAY_INTERFACE => 'CGI/1.1',
         HTTP_HOST         => $uri->host_port,
         HTTPS             => ( $uri->scheme eq 'https' ) ? 'ON' : 'OFF',  # not in RFC 3875
-        PATH_INFO         => $uri->path,
+        PATH_INFO         => URI::Escape::uri_unescape($uri->path),
         QUERY_STRING      => $uri->query || '',
         SCRIPT_NAME       => '/',
         SERVER_NAME       => $uri->host,
@@ -287,7 +288,7 @@ HTTP::Request::AsCGI - Set up a CGI environment from an HTTP::Request
 
 =head1 VERSION
 
-version 0.6
+version 0.7
 
 =begin Pod::Coverage
 
@@ -325,7 +326,7 @@ version 0.6
 
 =head1 DESCRIPTION
 
-Provides a convinient way of setting up an CGI environment from a HTTP::Request.
+Provides a convenient way of setting up an CGI environment from an HTTP::Request.
 
 =head1 METHODS
 
@@ -333,8 +334,8 @@ Provides a convinient way of setting up an CGI environment from a HTTP::Request.
 
 =item new ( $request [, key => value ] )
 
-Constructor, first argument must be a instance of HTTP::Request
-followed by optional pairs of environment key and value.
+Constructor.  The first argument must be a instance of HTTP::Request, followed
+by optional pairs of environment key and value.
 
 =item environment
 
@@ -343,7 +344,7 @@ Changing the hashref after setup has been called will have no effect.
 
 =item setup
 
-Setups the environment and descriptors.
+Sets up the environment and descriptors.
 
 =item restore
 
