@@ -1,11 +1,11 @@
 package HTTP::Request::AsCGI;
-our $VERSION = '0.9';
-
 # ABSTRACT: Set up a CGI environment from an HTTP::Request
 use strict;
 use warnings;
 use bytes;
 use base 'Class::Accessor::Fast';
+
+our $VERSION = '1.0';
 
 use Carp;
 use HTTP::Response;
@@ -23,8 +23,8 @@ __PACKAGE__->mk_accessors(qw[ environment request stdin stdout stderr ]);
 my %reserved = map { sprintf('%02x', ord($_)) => 1 } split //, $URI::reserved;
 sub _uri_safe_unescape {
     my ($s) = @_;
-    $s =~ s/%([a-fA-F0-9]{2})/$reserved{lc($1)} ? "%$1" : chr(hex($1))/ge;
-    $s;
+    $s =~ s/%([a-fA-F0-9]{2})/$reserved{lc($1)} ? "%$1" : pack('C', hex($1))/ge;
+    $s
 }
 
 sub new {
@@ -53,7 +53,7 @@ sub new {
         GATEWAY_INTERFACE => 'CGI/1.1',
         HTTP_HOST         => $uri->host_port,
         HTTPS             => ( $uri->scheme eq 'https' ) ? 'ON' : 'OFF',  # not in RFC 3875
-        PATH_INFO         => _uri_safe_unescape($uri->path),
+        PATH_INFO         => $uri->path,
         QUERY_STRING      => $uri->query || '',
         SCRIPT_NAME       => '/',
         SERVER_NAME       => $uri->host,
@@ -67,6 +67,13 @@ sub new {
         REQUEST_METHOD    => $request->method,
         @_
     };
+
+    # RFC 3875 says PATH_INFO is not URI-encoded. That's really
+    # annoying for applications that you can't tell "%2F" vs "/", but
+    # doing the partial decoding then makes it impossible to tell
+    # "%252F" vs "%2F". Encoding everything is more compatible to what
+    # web servers like Apache or lighttpd do, anyways.
+    $environment->{PATH_INFO} = URI::Escape::uri_unescape($environment->{PATH_INFO});
 
     foreach my $field ( $request->headers->header_field_names ) {
 
@@ -296,41 +303,43 @@ HTTP::Request::AsCGI - Set up a CGI environment from an HTTP::Request
 
 =head1 VERSION
 
-version 0.9
+version 1.0
 
 =begin Pod::Coverage
 
-    enviroment
+  enviroment
 
 =end Pod::Coverage
 
+
+
 =head1 SYNOPSIS
 
-      use CGI;
-      use HTTP::Request;
-      use HTTP::Request::AsCGI;
+    use CGI;
+    use HTTP::Request;
+    use HTTP::Request::AsCGI;
 
-      my $request = HTTP::Request->new( GET => 'http://www.host.com/' );
-      my $stdout;
+    my $request = HTTP::Request->new( GET => 'http://www.host.com/' );
+    my $stdout;
 
-      {
-          my $c = HTTP::Request::AsCGI->new($request)->setup;
-          my $q = CGI->new;
+    {
+        my $c = HTTP::Request::AsCGI->new($request)->setup;
+        my $q = CGI->new;
 
-          print $q->header,
-                $q->start_html('Hello World'),
-                $q->h1('Hello World'),
-                $q->end_html;
+        print $q->header,
+              $q->start_html('Hello World'),
+              $q->h1('Hello World'),
+              $q->end_html;
 
-          $stdout = $c->stdout;
+        $stdout = $c->stdout;
 
-          # environment and descriptors will automatically be restored
-          # when $c is destructed.
-      }
+        # environment and descriptors will automatically be restored
+        # when $c is destructed.
+    }
 
-      while ( my $line = $stdout->getline ) {
-          print $line;
-      }
+    while ( my $line = $stdout->getline ) {
+        print $line;
+    }
 
 =head1 DESCRIPTION
 
@@ -398,6 +407,8 @@ handle with an file descriptor.
 =head1 THANKS TO
 
 Thomas L. Shinnick for his valuable win32 testing.
+
+
 
 =head1 AUTHORS
 

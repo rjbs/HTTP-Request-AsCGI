@@ -2,16 +2,18 @@
 use strict;
 use warnings;
 
+
+
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
   DISTNAME  => 'HTTP-Request-AsCGI',
   NAME      => 'HTTP::Request::AsCGI',
-  AUTHOR    => 'Christian\ Hansen\ \<ch\@ngmedia\.com\>\,\ Hans\ Dieter\ Pearcey\ \<hdp\@cpan\.org\>',
-  ABSTRACT  => 'Set up a CGI environment from an HTTP::Request',
-  VERSION   => '0.9',
+  AUTHOR    => "Christian\ Hansen\ \<ch\@ngmedia\.com\>\,\ Hans\ Dieter\ Pearcey\ \<hdp\@cpan\.org\>",
+  ABSTRACT  => "Set\ up\ a\ CGI\ environment\ from\ an\ HTTP\:\:Request",
+  VERSION   => '1.0',
   EXE_FILES => [ qw() ],
-  (eval { ExtUtils::MakeMaker->VERSION(6.21) } ? (LICENSE => 'perl') : ()),
+  (eval { ExtUtils::MakeMaker->VERSION(6.31) } ? (LICENSE => 'perl') : ()),
   PREREQ_PM    => {
     "Test::More" => '0',
     "IO::File" => '0',
@@ -21,4 +23,6 @@ WriteMakefile(
     "HTTP::Request" => '0',
     "Carp" => '0',
   },
+  test => {TESTS => 't/*.t'}
 );
+

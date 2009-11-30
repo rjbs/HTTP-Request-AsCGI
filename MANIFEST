@@ -15,3 +15,5 @@ t/05env.t
 t/06response.t
 t/07forking.t
 t/08error.t
+t/release-pod-coverage.t
+t/release-pod-syntax.t
