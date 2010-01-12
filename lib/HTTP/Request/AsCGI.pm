@@ -1,11 +1,10 @@
 package HTTP::Request::AsCGI;
+our $VERSION = '1.2';
 # ABSTRACT: Set up a CGI environment from an HTTP::Request
 use strict;
 use warnings;
 use bytes;
 use base 'Class::Accessor::Fast';
-
-our $VERSION = '1.0';
 
 use Carp;
 use HTTP::Response;
@@ -47,6 +46,9 @@ sub new {
     $uri->port(80)          unless $uri->port;
     $uri->host_port($host)  unless !$host || ( $host eq $uri->host_port );
 
+    # Get it before canonicalized so REQUEST_URI can be as raw as possible
+    my $request_uri = $uri->path_query;
+
     $uri = $uri->canonical;
 
     my $environment = {
@@ -63,7 +65,7 @@ sub new {
         REMOTE_ADDR       => '127.0.0.1',
         REMOTE_HOST       => 'localhost',
         REMOTE_PORT       => int( rand(64000) + 1000 ),                   # not in RFC 3875
-        REQUEST_URI       => $uri->path_query,                            # not in RFC 3875
+        REQUEST_URI       => $request_uri,                                # not in RFC 3875
         REQUEST_METHOD    => $request->method,
         @_
     };
@@ -149,7 +151,7 @@ sub setup {
 
     {
         no warnings 'uninitialized';
-        %ENV = %{ $self->environment };
+        %ENV = (%ENV, %{ $self->environment });
     }
 
     if ( $INC{'CGI.pm'} ) {
@@ -174,7 +176,7 @@ sub response {
         $headers .= $line;
         last if $headers =~ /\x0d?\x0a\x0d?\x0a$/;
     }
-    
+
     unless ( defined $headers ) {
         $headers = "HTTP/1.1 500 Internal Server Error\x0d\x0a";
     }
@@ -201,7 +203,7 @@ sub response {
         $response->code($code);
         $response->message($message);
     }
-    
+
     my $length = ( stat( $self->stdout ) )[7] - tell( $self->stdout );
 
     if ( $response->code == 500 && !$length ) {
@@ -294,7 +296,6 @@ sub DESTROY {
 
 
 
-
 =pod
 
 =head1 NAME
@@ -303,14 +304,13 @@ HTTP::Request::AsCGI - Set up a CGI environment from an HTTP::Request
 
 =head1 VERSION
 
-version 1.0
+version 1.2
 
-=begin Pod::Coverage
+=for Pod::Coverage   enviroment
 
-  enviroment
+=cut
 
-=end Pod::Coverage
-
+=pod
 
 
 =head1 SYNOPSIS
@@ -347,7 +347,7 @@ Provides a convenient way of setting up an CGI environment from an HTTP::Request
 
 =head1 METHODS
 
-=over 4 
+=over 4
 
 =item new ( $request [, key => value ] )
 
@@ -356,7 +356,7 @@ by optional pairs of environment key and value.
 
 =item environment
 
-Returns a hashref containing the environment that will be used in setup. 
+Returns a hashref containing the environment that will be used in setup.
 Changing the hashref after setup has been called will have no effect.
 
 =item setup
@@ -390,7 +390,7 @@ handle with an file descriptor. Defaults to a tempoary IO::File instance.
 Accessor for handle that will be used for STDERR, must be a real seekable
 handle with an file descriptor.
 
-=back 
+=back
 
 =head1 SEE ALSO
 
@@ -402,28 +402,25 @@ handle with an file descriptor.
 
 =item L<Test::WWW::Mechanize::CGI>
 
-=back 
+=back
 
 =head1 THANKS TO
 
 Thomas L. Shinnick for his valuable win32 testing.
 
-
-
 =head1 AUTHORS
 
-  Christian Hansen <ch@ngmedia.com>
-  Hans Dieter Pearcey <hdp@cpan.org>
+Christian Hansen <ch@ngmedia.com>
+Hans Dieter Pearcey <hdp@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2009 by Christian Hansen <ch@ngmedia.com>.
+This software is copyright (c) 2010 by Christian Hansen <ch@ngmedia.com>.
 
 This is free software; you can redistribute it and/or modify it under
-the same terms as perl itself.
+the same terms as the Perl 5 programming language system itself.
 
-=cut 
-
+=cut
 
 
 __END__
