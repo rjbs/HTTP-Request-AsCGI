@@ -151,7 +151,8 @@ sub setup {
 
     {
         no warnings 'uninitialized';
-        %ENV = (%ENV, %{ $self->environment });
+        my %e = %{ $self->environment };
+        for my $k (keys %e) { $ENV{$k} = $e{$k}; }
     }
 
     if ( $INC{'CGI.pm'} ) {
@@ -249,7 +250,9 @@ sub restore {
 
     {
         no warnings 'uninitialized';
-        %ENV = %{ $self->{restore}->{environment} };
+        my %re = %{ $self->{restore}->{environment} };
+        delete $ENV{$_} for grep {; ! exists $re{$_} } keys %ENV;
+        $ENV{$_} = $re{$_} for keys %re;
     }
 
     open( STDIN, '<&'. fileno($self->{restore}->{stdin}) )
